@@ -11,3 +11,7 @@ repos:
           - --warnings=all
       - id: buildifier-lint
         args: *args
+  - repo: https://github.com/psf/black
+    rev: 21.12b0
+    hooks:
+    - id: black
