@@ -11,28 +11,6 @@ import tempfile
 from rules_python.python.runfiles import runfiles
 r = runfiles.Create()
 
-def modify_WORKSPACE(wksp, distro_path):
-    """Update the WORKSPACE file in the example to point to our locally-built tar.gz
-    This allows users to clone rules_python, cd into the example/dir, and run the example directly,
-    while our integration tests use the locally-built copy.
-
-    Args:
-        wksp: filesystem absolute path of the bazel WORKSPACE file under test
-        distro_path: runfiles path of the distro .tar.gz
-    """
-    with open(wksp, 'r') as wksp_file:
-        content = wksp_file.read()
-    # Replace the url for rules_python with our locally built one
-    content = re.sub(
-        r'url = "https://github.com/bazelbuild/rules_python/[^"]+"',
-        'url = "file://%s"' % r.Rlocation(distro_path),
-        content)
-    # comment out sha256 and strip_prefix if present
-    content = re.sub(r'sha256 = "', '#\1', content)
-    content = re.sub(r'strip_prefix = "', '#\1', content)
-    with open(wksp, 'w') as wksp_file:
-        wksp_file.write(content)
-
 def main(conf_file):
     with open(conf_file) as j:
         config = json.load(j)
@@ -49,8 +27,6 @@ def main(conf_file):
         workdir = os.path.join(tmpdir, "wksp")
         print("copying workspace under test %s to %s" % (workspacePath, workdir))
         shutil.copytree(workspacePath, workdir)
-
-        modify_WORKSPACE(os.path.join(workdir, 'WORKSPACE'), config['distro'])
 
         for command in config['bazelCommands']:
             bazel_args = command.split(' ')
